@@ -1,20 +1,25 @@
-dnsLookup() {
-  if [ -z "$1" ]; then
-    echo "Usage: dns_records <domain>"
-    return 1
-  fi
+#!/bin/bash
 
-  local DOMAIN=$1
-  local RECORD_TYPES=("A" "AAAA" "MX" "TXT" "NS" "CNAME" "SOA")
+# Check if a domain name is provided as an argument
+if [ -z "$1" ]; then
+  echo "Usage: $0 <domain>"
+  exit 1
+fi
 
-  get_dns_records() {
-    local RECORD_TYPE=$1
-    echo "Fetching $RECORD_TYPE records for $DOMAIN..."
-    dig +nocmd +noall +answer $DOMAIN $RECORD_TYPE
-    echo
-  }
+DOMAIN=$1
 
-  for RECORD_TYPE in "${RECORD_TYPES[@]}"; do
-    get_dns_records $RECORD_TYPE
-  done
+# Function to get DNS records
+get_dns_records() {
+  RECORD_TYPE=$1
+  echo "Fetching $RECORD_TYPE records for $DOMAIN..."
+  dig +nocmd +noall +answer $DOMAIN $RECORD_TYPE
+  echo
 }
+
+# List of DNS record types to query
+RECORD_TYPES=("A" "AAAA" "MX" "TXT" "NS" "CNAME" "SOA")
+
+# Loop through each record type and fetch records
+for RECORD_TYPE in "${RECORD_TYPES[@]}"; do
+  get_dns_records $RECORD_TYPE
+done
