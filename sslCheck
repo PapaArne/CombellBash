@@ -1,23 +1,35 @@
-sslCheck() {
-  if [ -z "$1" ]; then
-    echo "Usage: check_ssl <domain>"
-    return 1
-  fi
+#!/bin/bash
 
-  local DOMAIN=$1
-  local PORT=443
+# Check if a domain is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <domain>"
+  exit 1
+fi
 
-  echo "Fetching SSL certificate details for $DOMAIN..."
+DOMAIN=$1
+PORT=443
 
-  openssl s_client -servername $DOMAIN -connect $DOMAIN:$PORT </dev/null 2>/dev/null | openssl x509 -noout -issuer -subject -dates -serial -fingerprint
+# Fetch and display SSL certificate details
+echo "Fetching SSL certificate details for $DOMAIN..."
 
-  local EXPIRY_DATE=$(openssl s_client -servername $DOMAIN -connect $DOMAIN:$PORT </dev/null 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
-  local CURRENT_DATE=$(date -u "+%Y-%m-%d %H:%M:%S")
+CERT_INFO=$(echo | openssl s_client -servername $DOMAIN -connect $DOMAIN:$PORT 2>/dev/null | openssl x509 -noout -issuer -subject -dates -serial -fingerprint)
 
-  local EXPIRY_DATE_SEC=$(date -u -d "$EXPIRY_DATE" "+%s")
-  local CURRENT_DATE_SEC=$(date -u -d "$CURRENT_DATE" "+%s")
+if [ -z "$CERT_INFO" ]; then
+  echo "Unable to retrieve SSL certificate information. The website may not have an SSL certificate or may not be accessible."
+  exit 1
+fi
 
-  local DAYS_UNTIL_EXPIRY=$(( ($EXPIRY_DATE_SEC - $CURRENT_DATE_SEC) / 86400 ))
+echo "$CERT_INFO"
 
-  echo "The SSL certificate for $DOMAIN will expire on $EXPIRY_DATE ($DAYS_UNTIL_EXPIRY days remaining)."
-}
+# Extract the expiration date
+EXPIRY_DATE=$(echo "$CERT_INFO" | grep 'notAfter=' | cut -d= -f2)
+CURRENT_DATE=$(date -u "+%Y-%m-%d %H:%M:%S")
+
+# Convert dates to seconds since epoch
+EXPIRY_DATE_SEC=$(date -u -d "$EXPIRY_DATE" "+%s")
+CURRENT_DATE_SEC=$(date -u -d "$CURRENT_DATE" "+%s")
+
+# Calculate days until expiry
+DAYS_UNTIL_EXPIRY=$(( ($EXPIRY_DATE_SEC - $CURRENT_DATE_SEC) / 86400 ))
+
+echo "The SSL certificate for $DOMAIN will expire on $EXPIRY_DATE ($DAYS_UNTIL_EXPIRY days remaining)."
