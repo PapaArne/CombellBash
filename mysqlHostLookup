@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Check if a hostname is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <hostname>"
+  exit 1
+fi
+
+# Append .db.webhosting.be to the provided hostname
+FULL_HOSTNAME="$1.db.webhosting.be"
+
+# Perform DNS lookup
+IP_ADDRESS=$(dig +short "$FULL_HOSTNAME")
+
+# Check if IP address was found
+if [ -z "$IP_ADDRESS" ]; then
+  echo "No IP address found for hostname: $FULL_HOSTNAME"
+else
+  echo "IP address for hostname $FULL_HOSTNAME: $IP_ADDRESS"
+fi
+
+# Perform reverse DNS lookup
+HOSTNAME=$(dig +short -x $IP_ADDRESS)
+
+# Check if hostname was found
+if [ -z "$HOSTNAME" ]; then
+  echo "No hostname found for IP address: $IP_ADDRESS"
+else
+  echo "Hostname for IP address $IP_ADDRESS: $HOSTNAME"
+fi
