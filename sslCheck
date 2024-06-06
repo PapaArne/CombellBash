@@ -1,0 +1,23 @@
+sslCheck() {
+  if [ -z "$1" ]; then
+    echo "Usage: check_ssl <domain>"
+    return 1
+  fi
+
+  local DOMAIN=$1
+  local PORT=443
+
+  echo "Fetching SSL certificate details for $DOMAIN..."
+
+  openssl s_client -servername $DOMAIN -connect $DOMAIN:$PORT </dev/null 2>/dev/null | openssl x509 -noout -issuer -subject -dates -serial -fingerprint
+
+  local EXPIRY_DATE=$(openssl s_client -servername $DOMAIN -connect $DOMAIN:$PORT </dev/null 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+  local CURRENT_DATE=$(date -u "+%Y-%m-%d %H:%M:%S")
+
+  local EXPIRY_DATE_SEC=$(date -u -d "$EXPIRY_DATE" "+%s")
+  local CURRENT_DATE_SEC=$(date -u -d "$CURRENT_DATE" "+%s")
+
+  local DAYS_UNTIL_EXPIRY=$(( ($EXPIRY_DATE_SEC - $CURRENT_DATE_SEC) / 86400 ))
+
+  echo "The SSL certificate for $DOMAIN will expire on $EXPIRY_DATE ($DAYS_UNTIL_EXPIRY days remaining)."
+}
