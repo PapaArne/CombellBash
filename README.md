@@ -1,5 +1,7 @@
-# bashrc
+Voeg de code van de files toe in een .sh file waarvan je zelf de naam kiest. 
 
-Plak deze code onderaan je .bashrc file. Dit gaat leuke nieuwe features unlocken voor je.
+Nadien voer je de volgende command uit:
 
-Na het pasten en opslaan van de  .bashrc file, kan je source .bashrc uitvoeren.
+chmod +x scriptnaam.sh
+
+Nadien move je de file naar /user/local/bin/
